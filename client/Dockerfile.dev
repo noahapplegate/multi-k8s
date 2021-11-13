@@ -1,0 +1,13 @@
+FROM node:16-alpine
+USER node
+# Set working directory
+RUN mkdir -p /home/node/app
+WORKDIR '/home/node/app'
+
+# Install dependencies
+COPY --chown=node:node ./package.json .
+RUN npm install
+
+# Copy remaining files
+COPY --chown=node:node . .
+CMD ["npm", "start"]
