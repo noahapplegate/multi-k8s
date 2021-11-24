@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Generate deployment package
         uses: actions/checkout@v2
-        run: zip -r deploy.zip . -x '*.git*'
+      - run: zip -r deploy.zip . -x '*.git*'
 
       - name: Deploy to EB
         uses: actions/checkout@v2
