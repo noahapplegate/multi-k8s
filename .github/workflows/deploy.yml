@@ -38,8 +38,8 @@ jobs:
       - run: zip -r deploy.zip . -x '*.git*'
 
       - name: Deploy to EB
-        uses: actions/checkout@v2
-        uses: einaregilsson/beanstalk-deploy@v18
+      - uses: actions/checkout@v2
+      - uses: einaregilsson/beanstalk-deploy@v18
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
