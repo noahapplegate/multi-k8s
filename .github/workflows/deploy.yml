@@ -30,7 +30,7 @@ jobs:
   #     - run: docker push noahapplegate/multi-worker
 
   deploy-to-aws-eb:
-    needs: build-and-push-docker-image
+    #needs: build-and-push-docker-image
     runs-on: ubuntu-latest
     steps:
       - name: Generate deployment package
