@@ -15,6 +15,11 @@ function fib(index) {
     return fib(index - 1) + fib(index - 2);
 }
 
+// Have the redis client 'sub' subscribe to the 'insert' channel.
+// The messages published to the insert channel will be numbers entered by the user on the front end site (see /server/index.js)
+//
+// When a message is published on this channel, the redis client 'redisClient' will insert the key/value
+// pair of (message, fib(message))
 sub.on('message', (channel, message) => {
     redisClient.hset('values', message, fib(parseInt(message)));
 });
