@@ -37,7 +37,6 @@ jobs:
         uses: actions/checkout@v2
       - run: zip -r deploy.zip . -x '*.git*'
 
-      - name: Deploy to EB
       - uses: actions/checkout@v2
       - uses: einaregilsson/beanstalk-deploy@v18
         with:
