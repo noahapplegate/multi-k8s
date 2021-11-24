@@ -5,29 +5,29 @@ on:
       - main
 
 jobs:
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t noahapplegate/react-test -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true noahapplegate/react-test npm test
+  # tests:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+  #     - run: docker build -t noahapplegate/react-test -f ./client/Dockerfile.dev ./client
+  #     - run: docker run -e CI=true noahapplegate/react-test npm test
 
-  build-and-push-docker-image:
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t noahapplegate/multi-client ./client
-      - run: docker build -t noahapplegate/multi-nginx ./nginx
-      - run: docker build -t noahapplegate/multi-server ./server
-      - run: docker build -t noahapplegate/multi-worker ./worker
+  # build-and-push-docker-image:
+  #   needs: tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+  #     - run: docker build -t noahapplegate/multi-client ./client
+  #     - run: docker build -t noahapplegate/multi-nginx ./nginx
+  #     - run: docker build -t noahapplegate/multi-server ./server
+  #     - run: docker build -t noahapplegate/multi-worker ./worker
 
-      - run: docker push noahapplegate/multi-client
-      - run: docker push noahapplegate/multi-nginx
-      - run: docker push noahapplegate/multi-server
-      - run: docker push noahapplegate/multi-worker
+  #     - run: docker push noahapplegate/multi-client
+  #     - run: docker push noahapplegate/multi-nginx
+  #     - run: docker push noahapplegate/multi-server
+  #     - run: docker push noahapplegate/multi-worker
 
   deploy-to-aws-eb:
     needs: build-and-push-docker-image
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v2
       - run: zip -r deploy.zip . -x '*.git*'
 
-      - uses: actions/checkout@v2
+      - name: Deploy to EB
       - uses: einaregilsson/beanstalk-deploy@v18
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
