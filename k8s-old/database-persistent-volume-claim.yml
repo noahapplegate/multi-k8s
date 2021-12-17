@@ -1,0 +1,24 @@
+# This PVC will be used by our postgres deployment
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database-persistent-volume-claim
+
+# spec tells Kubernetes what kind of hard drive space we want
+spec:
+  # accessModes defines how the volume can be accessed by nodes
+  # ReadWriteOnce - Volume can be used by a single node
+  accessModes:
+    - ReadWriteOnce
+
+  # resources defines what we are requesting from Kubernetes
+  # In this case we are requesting 2 gigabytes of hard drive space
+  resources:
+    requests:
+      storage: 2Gi
+
+  # storageClassName: ...
+  # storageClassName can be used to specify a provisioner
+  # which tells us where we are getting our resources from
+  # In minikube this is our local machine but this might
+  # also be a cloud provider like AWS

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: server
+  template:
+    metadata:
+      labels:
+        component: server
+    spec:
+      containers:
+        - name: server
+          image: stephengrider/multi-server
+          ports:
+            - containerPort: 5000
+          env:
+            # Provide environment variables to connect to the
+            # instances of redis and postgres
+            # We connect to these instances through the cluster ip
+            # services that manage the deployments running these instances
+            # Note: We do not want to store our password as plaintext
+            # We store this information in a Kubernetes "Secret" object
+            - name: REDIS_HOST
+              value: redis-cluster-ip-service
+            - name: REDIS_PORT
+              value: "6379"
+            - name: PGUSER
+              value: postgres
+            - name: PGHOST
+              value: postgres-cluster-ip-service
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: postgres
+              # Get the password from the Secret object
+            - name: PGPASSWORD
+              valueFrom:
+                # Get the value from the secret object with name pgpassword
+                # whos key is PGPASSWORD
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD
