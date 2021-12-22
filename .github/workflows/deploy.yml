@@ -32,25 +32,25 @@ jobs:
 
       # Log in to Docker CLI
       - name: Docker login
-      - run: |-
+        run: |-
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       # Build and test multi-client image
       - name: Run Tests on Dev Image
-      - run: |-
+        run: |-
           docker build -t noahapplegate/react-test -f ./client/Dockerfile.dev ./client
           docker run -e CI=true noahapplegate/react-test npm test
 
       # Build images and push to DockerHub
       - name: Build Images
-      - run: |-
+        run: |-
           docker build -t noahapplegate/multi-client ./client
           docker build -t noahapplegate/multi-nginx ./nginx
           docker build -t noahapplegate/multi-server ./server
           docker build -t noahapplegate/multi-worker ./worker
 
       - name: Push Images
-      - run: |-
+        run: |-
           docker push noahapplegate/multi-client
           docker push noahapplegate/multi-nginx
           docker push noahapplegate/multi-server
