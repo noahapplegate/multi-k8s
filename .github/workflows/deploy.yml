@@ -1,50 +1,63 @@
-name: Fib-Test-and-Deploy
+name: Deploy Complex app to GKE
+
 on:
   push:
     branches:
       - main
 
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: multi-cluster # TODO: update to cluster name
+  GKE_ZONE: us-west1-a # TODO: update to cluster zone
+
 jobs:
-  tests:
+  setup-and-deploy:
+    name: Setup and Deploy
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t noahapplegate/react-test -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true noahapplegate/react-test npm test
 
-  build-and-push-docker-image:
-    needs: tests
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t noahapplegate/multi-client ./client
-      - run: docker build -t noahapplegate/multi-nginx ./nginx
-      - run: docker build -t noahapplegate/multi-server ./server
-      - run: docker build -t noahapplegate/multi-worker ./worker
-
-      - run: docker push noahapplegate/multi-client
-      - run: docker push noahapplegate/multi-nginx
-      - run: docker push noahapplegate/multi-server
-      - run: docker push noahapplegate/multi-worker
-
-  deploy-to-aws-eb:
-    needs: build-and-push-docker-image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate deployment package
+      - name: Checkout
         uses: actions/checkout@v2
-      - run: zip -r deploy.zip . -x '*.git*'
 
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v18
+      # Setup gcloud CLI
+      - name: gcloud setup
+        uses: google-github-actions/setup-gcloud@master
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: multi-docker
-          environment_name: Multidocker-env
-          existing_bucket_name: elasticbeanstalk-us-west-1-507649293101
-          region: us-west-1
-          version_label: ${{ github.sha }}
-          deployment_package: deploy.zip
+          service_account_key: ${{ secrets.GKE_SA_KEY }}
+          project_id: ${{ secrets.GKE_PROJECT }}
+
+      # Get the GKE credentials so we can deploy to the cluster
+      - run: |-
+          gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
+      # Log in to Docker CLI
+      - name: Docker login
+      - run: |-
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build and test multi-client image
+      - name: Run Tests on Dev Image
+      - run: |-
+          docker build -t noahapplegate/react-test -f ./client/Dockerfile.dev ./client
+          docker run -e CI=true noahapplegate/react-test npm test
+
+      # Build images and push to DockerHub
+      - name: Build Images
+      - run: |-
+          docker build -t noahapplegate/multi-client ./client
+          docker build -t noahapplegate/multi-nginx ./nginx
+          docker build -t noahapplegate/multi-server ./server
+          docker build -t noahapplegate/multi-worker ./worker
+
+      - name: Push Images
+      - run: |-
+          docker push noahapplegate/multi-client
+          docker push noahapplegate/multi-nginx
+          docker push noahapplegate/multi-server
+          docker push noahapplegate/multi-worker
+
+      # Deploy sample image to the GKE cluster
+      - name: Deploy to GKE
+        run: |-
+          kubectl apply -f k8s
+          kubectl get services -o wide
