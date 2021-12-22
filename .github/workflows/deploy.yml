@@ -45,14 +45,12 @@ jobs:
       - name: Build Images
         run: |-
           docker build -t noahapplegate/multi-client ./client
-          docker build -t noahapplegate/multi-nginx ./nginx
           docker build -t noahapplegate/multi-server ./server
           docker build -t noahapplegate/multi-worker ./worker
 
       - name: Push Images
         run: |-
           docker push noahapplegate/multi-client
-          docker push noahapplegate/multi-nginx
           docker push noahapplegate/multi-server
           docker push noahapplegate/multi-worker
 
